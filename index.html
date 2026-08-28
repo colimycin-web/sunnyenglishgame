@@ -7,6 +7,8 @@
     <style>
         body { font-family: '微軟正黑體', sans-serif; text-align: center; background-color: #f0f8ff; padding-top: 50px; }
         .game-box { background: white; width: 80%; max-width: 500px; margin: 0 auto; padding: 30px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        /* 新增：計分板樣式 */
+        #score-board { font-size: 24px; color: #ff8c00; font-weight: bold; margin-bottom: 20px; }
         #chinese-word { font-size: 48px; color: #333; margin-bottom: 20px; font-weight: bold; }
         #english-input { font-size: 32px; padding: 10px; width: 80%; text-align: center; border: 2px solid #ccc; border-radius: 8px; }
         #message { font-size: 24px; margin-top: 20px; font-weight: bold; height: 30px; }
@@ -17,6 +19,9 @@
 
 <div class="game-box">
     <h2>🌟 單字小達人 🌟</h2>
+    <!-- 新增：顯示答對題數的區塊 -->
+    <div id="score-board">🏆 答對題數：0 題</div>
+    
     <div id="chinese-word">載入中...</div>
     <input type="text" id="english-input" placeholder="請輸入英文" autocomplete="off">
     <br>
@@ -25,12 +30,12 @@
 </div>
 
 <script>
-    // 這裡已經換成您專屬的 Google 試算表網址了！
     const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxgq4tdBKkH9XxYsXSZ0cDlFXXnmkON0lAB1jBP4B7sFwFAj_P6a5ezarU2uCOVVXV2BYexB_7-puV/pub?output=csv';
     
     let wordList = []; 
     let currentQuestionIndex = 0; 
-    let isProcessing = false; // 【修改 1】新增防連點變數
+    let isProcessing = false; 
+    let correctCount = 0; // 新增：用來記錄答對題數的變數
 
     async function fetchWords() {
         try {
@@ -49,7 +54,7 @@
                 }
             }
 
-            // 【修改 2】將抓下來的單字隨機洗牌
+            // 隨機洗牌
             wordList.sort(() => Math.random() - 0.5);
 
             if(wordList.length > 0) {
@@ -70,12 +75,12 @@
         document.getElementById('message').innerText = ""; 
         document.getElementById('english-input').focus(); 
         
-        isProcessing = false; // 【修改 3】換題完成，解開防連點鎖定
+        isProcessing = false; // 換題完成，解開防連點鎖定
     }
 
     function checkAnswer() {
-        if (isProcessing) return; // 【修改 4】如果系統正在處理中，直接攔截不動作
-        isProcessing = true;      // 【修改 5】開始比對答案，將系統上鎖
+        if (isProcessing) return; // 如果系統正在處理中，直接攔截不動作
+        isProcessing = true;      // 開始比對答案，將系統上鎖
 
         const userInput = document.getElementById('english-input').value.toLowerCase().trim();
         const correctAnswer = wordList[currentQuestionIndex].en.toLowerCase().trim();
@@ -84,6 +89,10 @@
         if (userInput === correctAnswer) {
             messageDiv.style.color = "green";
             messageDiv.innerText = "⭕ 答對了！太棒了！";
+            
+            // 答對時，增加題數並更新畫面顯示
+            correctCount++;
+            document.getElementById('score-board').innerText = `🏆 答對題數：${correctCount} 題`;
             
             setTimeout(() => {
                 currentQuestionIndex++;
@@ -100,7 +109,7 @@
             messageDiv.style.color = "red";
             messageDiv.innerText = "❌ 答錯了，再試一次！";
             document.getElementById('english-input').value = ""; 
-            isProcessing = false; // 【修改 6】答錯時也要解開鎖定，讓學生可以重新送出
+            isProcessing = false; // 答錯時也要解開鎖定，讓學生可以重新送出
         }
     }
 
